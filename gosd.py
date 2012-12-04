@@ -3,7 +3,7 @@ import socket, mpd
 from gi.repository import Gtk, Gdk
 from time import sleep, time, ctime
 from os import popen
-from html import escape
+from cgi import escape
 
 ### CONFIGURATION OPTIONS ###
 
@@ -76,8 +76,9 @@ def show():
  lastCall = time()
 
 def damage(window, event):
- global win
- win.present()
+ global win, visible
+ if visible:
+  win.present()
  
 def place():
  global win
@@ -86,6 +87,7 @@ def place():
   
 def getThumbnail(pic):
  """Returns either None if no thumbnail can be made, or the tkinter PhotoImage object if one has been made."""
+ # FIX: this was copied from the old version, needs to be updated
  img = None
  if pic:
   if basename(pic)[-4:] == '.ppm':
