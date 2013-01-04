@@ -21,7 +21,9 @@ s.settimeout(0)
 s.listen(1)
 
 # gui global variables
+global visible, text, lastCall
 visible = False
+text = None
 lastCall = time()
 
 # mpd connection
@@ -47,33 +49,39 @@ def mpdGet(rec=False):
   return m
 
 def readFromSocket():
+ global text, lastCall
  try:
   (a, b) = s.accept()
  except socket.error:
-  return
+  pass
  else:
-  x = str(a.recv(10000), 'utf-8').rstrip()
-  message(x)
+  text = str(a.recv(10000), 'utf-8').rstrip()
+  if text == 'HIDE' or text == 'KILL':
+   hide()
+  else:
+   lastCall = time()
+   show()
   a.close()
-  return
 
 def main():
  global visible, osdOnScreenTime, lastCall, win
  Gtk.main_iteration_do(False)
  readFromSocket()
- if visible and (time() - lastCall) > osdOnScreenTime: # hide the OSD
-  hide()
+ if visible:
+  message()
+  if (time() - lastCall) > osdOnScreenTime: # hide the OSD
+   hide()
 
 def hide():
- global visible, win
- win.hide()
+ global visible, win, text
  visible = False
+ win.hide()
+ text = None
 
 def show():
  global visible, win, lastCall
  win.show()
  visible = True
- lastCall = time()
 
 def damage(window, event):
  global win, visible
@@ -97,6 +105,14 @@ def getThumbnail(pic):
    system('convert -geometry 75x75 "%s" "%s"' % (pic, npic)) # we have to convert the image to .ppm because tkinter doesn't support most image formats.
    img = PhotoImage(file=npic)
  return img
+
+def mplayerText():
+ x = popen('ps x').read().split('\n')
+ mplayer = None
+ for i in x:
+  if i.find('mplayer') != -1:
+   mplayer = i[i.find('jack ')+5:]
+ return mplayer
 
 def mpdText(retrying=False):
  v = mpdGet()
@@ -180,14 +196,17 @@ def timeText():
 def getDefaultText():
  return mpdText() + ' ' + volText() + '\n' + timeText()
  
-def message(text=None):
- global win
+def message():
+ global win, text, visible
  if not text:
-  text = getDefaultText()
- win.label.set_markup('<small>' + escape(text) + '</small>')
+  ntext = getDefaultText()
+ else:
+  ntext = text
+ win.label.set_markup('<small>' + escape(ntext) + '</small>')
  Gtk.main_iteration_do(False)
- place()
- show()
+ if visible:
+  place()
+  show()
  
 class MyWindow(Gtk.Window):
  def __init__(self):
@@ -200,21 +219,18 @@ class MyWindow(Gtk.Window):
   self.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 0, 0, 1))
   self.label.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1, 1, 1, 1))
   self.add(self.label)
-      
- def on_button_clicked(self, widget):
-  #self.hide()
-  print("Hello World")
-  #sleep(1)
-  #self.show()
 
 if __name__ == '__main__':
+ # global win, text
  win = MyWindow()
  win.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
  win.connect('button-press-event', lambda w, e: hide())
  win.connect("delete-event", Gtk.main_quit)
  win.connect('visibility-notify-event', damage)
  win.show_all()
- message("Started")
+ text = "Started"
+ visible = True
+ # message()
  while True:
   main()
   sleep(0.02)
