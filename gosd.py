@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import socket, mpd
 from gi.repository import Gtk, Gdk
+from gi.repository.Pango import font_description_from_string
 from time import sleep, time, ctime
 from os import popen
 from cgi import escape
@@ -58,6 +59,13 @@ def readFromSocket():
   text = str(a.recv(10000), 'utf-8').rstrip()
   if text == 'HIDE' or text == 'KILL':
    hide()
+  elif text == 'TOGGLE':
+   if visible:
+    hide()
+   else:
+    text = None
+    lastCall = time()
+    show()
   else:
    lastCall = time()
    show()
@@ -69,8 +77,13 @@ def main():
  readFromSocket()
  if visible:
   message()
-  if (time() - lastCall) > osdOnScreenTime: # hide the OSD
-   hide()
+  win.present()
+  if not text:
+   if (time() - lastCall) > osdOnScreenTime: # hide the OSD
+    hide()
+  else: # text was provided
+   if (time() - lastCall) > max(osdOnScreenTime, (len(text.split("\n")))):
+    hide()
 
 def hide():
  global visible, win, text
@@ -81,6 +94,7 @@ def hide():
 def show():
  global visible, win, lastCall
  win.show()
+ win.present()
  visible = True
 
 def damage(window, event):
@@ -167,6 +181,10 @@ def mpdText(retrying=False):
     state = chr(9654)
    else:
     state = chr(9632)
+   if ss['consume'] == '1':
+    consume = chr(5607) + ' '
+   else:
+    consume = ''
    # current time
    try:
     cur_time = ftime(ss['time'].split(':')[0])
@@ -179,7 +197,7 @@ def mpdText(retrying=False):
     random = chr(8594)
    else:
     random = chr(8644)
-   return artist + ' - ' + title + '\n' + track + ' - ' + album + '\n' + num + '/' + length + ' ' + state + ' ' + cur_time + '/' + total_time + ' ' + random
+   return artist + ' - ' + title + '\n' + track + ' - ' + album + '\n' + num + '/' + length + ' ' + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
  else:
   return "MPD is offline."
 
@@ -211,14 +229,26 @@ def message():
 class MyWindow(Gtk.Window):
  def __init__(self):
   Gtk.Window.__init__(self, title="OSD", decorated=False, resizable=False, opacity=0.0, type=True)
-  # self.button = Gtk.Button(label="Click Here")
-  # self.button.connect("clicked", self.on_button_clicked)
-  # self.add(self.button)
   self.label = Gtk.Label(label="OSD server started.")
+  self.label.modify_font(font_description_from_string("DejaVu Sans 10"))
   self.label.set_justify(Gtk.Justification.RIGHT)
   self.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 0, 0, 1))
   self.label.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1, 1, 1, 1))
-  self.add(self.label)
+  self.hbox = Gtk.HBox()
+  self.add(self.hbox)
+  # self.image = Gtk.Image()
+  # self.allocation = self.hbox.get_parent.get_allocation()
+  # print(allocation.height)
+  # desired_width = allocation.width
+  # desired_height = allocation.height
+  # self.image.set_from_file("/home/modula/splat1.gif")
+  # self.pixbuf = self.image.get_pixbuf()
+  # self.pixbuf = self.pixbuf.scale_simple(33, 33, 1)
+  # self.image.set_from_pixbuf(self.pb)
+  # self.image.scale_simple(33,33)
+  # self.hbox.add(self.image)
+  self.hbox.add(self.label)
+  # self.hbox.remove(self.image)
 
 if __name__ == '__main__':
  # global win, text
@@ -233,4 +263,4 @@ if __name__ == '__main__':
  # message()
  while True:
   main()
-  sleep(0.02)
+  sleep(0.01)
