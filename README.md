@@ -1,7 +1,7 @@
 gosd.py
 =======
 
-simple GTK OSD written in python 3, designed for use with MPD.
+simple ~~Gtk~~ Qt OSD written in python 3, designed for use with MPD.
 
 I made this because i couldn't find any decent OSDs for MPD. This one simply does what it says on the tin.
 
@@ -21,5 +21,4 @@ TODO
 
 Right now gosd.py is 'good enough' for me, but i do have plans to improve it:
 
-* look in the current song's directory for an album cover to be displayed on the OSD.
 * allow gosd_go.py to specify a different amount of time for a message to be displayed (i.e. so that longer messages stay on-screen longer) and then restore the original setting after the message is gone.

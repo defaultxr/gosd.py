@@ -1,34 +1,47 @@
 #!/usr/bin/python
 import socket, mpd
-from gi.repository import Gtk, Gdk
-from gi.repository.Pango import font_description_from_string
+from PyQt4 import Qt, QtGui, QtCore
 from time import sleep, time, ctime
-from os import popen
+from os import popen, listdir
+from os.path import expanduser, dirname, splitext
 from cgi import escape
 
 ### CONFIGURATION OPTIONS ###
 
-background = "#000"
-foreground = "#FFF" # color of the text
 osdOnScreenTime = 7 # time the OSD will stay on screen
 
 ### INITIALIZATION ###
 
-# server
-s = socket.socket()
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind(('localhost', 9876))
-s.settimeout(0)
-s.listen(1)
-
-# gui global variables
-global visible, text, lastCall
-visible = False
+global text, lastCall # FIX: remove these
+global conf
 text = None
 lastCall = time()
 
-# mpd connection
-m = None
+def mpdConfig():
+ d = {}
+ file = open(expanduser('~') + '/.config/mpd/mpd.conf', 'r').readlines()
+ for i in file:
+  split = i.split()
+  if len(split) == 2:
+   d[split[0]] = split[1]
+ return d
+
+conf = mpdConfig()
+
+def mpdGetPassword():
+ if 'password' in conf:
+  pw = conf['password']
+  return pw[1:pw.find('@')]
+ else:
+  return None
+
+password = mpdGetPassword()
+
+def mpdMusicDir():
+ if 'music_directory' in conf:
+  return conf['music_directory'][1:-1]
+
+musicdir = mpdMusicDir()
 
 ### FUNCTIONS ###
 
@@ -36,173 +49,18 @@ def ftime(time):
  time = int(time)
  return str(int(time/60)) + ':' + '%.2d' % int(time%60)
 
-def mpdGet(rec=False):
- global m
- if not m or rec:
-  m = mpd.MPDClient()
-  try:
-   m.connect('localhost', 6600)
-  except:
-   return None
-  else:
-   return m
+def jcText():
+ # is jack_capture running?
+ tmp = popen("ps -eo etime,cmd|grep '^[ ]*[0-9]*:[0-9]* jack_captu[r]e'", "r")
+ txt = tmp.read()
+ tmp.close()
+ if len(txt) > 0:
+  return chr(9679) + "(" + txt.split()[0] + ")"
  else:
-  return m
-
-def readFromSocket():
- global text, lastCall
- try:
-  (a, b) = s.accept()
- except socket.error:
-  pass
- else:
-  text = str(a.recv(10000), 'utf-8').rstrip()
-  if text == 'HIDE' or text == 'KILL':
-   hide()
-  elif text == 'TOGGLE':
-   if visible:
-    hide()
-   else:
-    text = None
-    lastCall = time()
-    show()
-  else:
-   lastCall = time()
-   show()
-  a.close()
-
-def main():
- global visible, osdOnScreenTime, lastCall, win
- Gtk.main_iteration_do(False)
- readFromSocket()
- if visible:
-  message()
-  win.present()
-  if not text:
-   if (time() - lastCall) > osdOnScreenTime: # hide the OSD
-    hide()
-  else: # text was provided
-   if (time() - lastCall) > max(osdOnScreenTime, (len(text.split("\n")))):
-    hide()
-
-def hide():
- global visible, win, text
- visible = False
- win.hide()
- text = None
-
-def show():
- global visible, win, lastCall
- win.show()
- win.present()
- visible = True
-
-def damage(window, event):
- global win, visible
- if visible:
-  win.present()
- 
-def place():
- global win
- x, y = win.get_size()
- win.move(Gdk.Screen.width()-(x+10), Gdk.Screen.height()-(y+17))
-  
-def getThumbnail(pic):
- """Returns either None if no thumbnail can be made, or the tkinter PhotoImage object if one has been made."""
- # FIX: this was copied from the old version, needs to be updated
- img = None
- if pic:
-  if basename(pic)[-4:] == '.ppm':
-   img = PhotoImage(file=pic)
-  else:
-   npic = dirname(pic) + '/.c_thumb.ppm' # we'll store the thumbnail in the same directory, but we'll call it .c_thumb.ppm
-   system('convert -geometry 75x75 "%s" "%s"' % (pic, npic)) # we have to convert the image to .ppm because tkinter doesn't support most image formats.
-   img = PhotoImage(file=npic)
- return img
-
-def mplayerText():
- x = popen('ps x').read().split('\n')
- mplayer = None
- for i in x:
-  if i.find('mplayer') != -1:
-   mplayer = i[i.find('jack ')+5:]
- return mplayer
-
-def mpdText(retrying=False):
- v = mpdGet()
- if v:
-  try:
-   cs = v.currentsong()
-  except mpd.ConnectionError:
-   if retrying:
-    return "MPD is offline."
-   else:
-    mpdGet(True)
-    return mpdText(True)
-  except socket.error:
-   mpdGet(True)
-   return "Error."
-  else:
-   ss = v.status()
-   if ss['state'] == 'stop':
-    return "MPD is stopped."
-   # artist
-   try:
-    artist = cs['artist']
-   except KeyError:
-    artist = ''
-   # album
-   try:
-    album = cs['album']
-   except KeyError:
-    album = ''
-   # title
-   try:
-    title = cs['title']
-   except KeyError:
-    title = ''
-   # track
-   try:
-    track = cs['track']
-    if type(track) == list:
-     print("track value is: " + track)
-     track = track[0]
-   except:
-    track = ''
-   # playlist number
-   try:
-    num = str(int(ss['song'])+1)
-   except KeyError:
-    num = 'KeyError'
-   # playlist length
-   length = ss['playlistlength']
-   # state
-   if ss['state'] == 'play':
-    state = chr(9654)
-   else:
-    state = chr(9632)
-   if ss['consume'] == '1':
-    consume = chr(5607) + ' '
-   else:
-    consume = ''
-   # current time
-   try:
-    cur_time = ftime(ss['time'].split(':')[0])
-   except KeyError:
-    cur_time = "KeyError"
-   # total time
-   total_time = ftime(cs['time'])
-   # random mode
-   if ss['random'] == '0':
-    random = chr(8594)
-   else:
-    random = chr(8644)
-   return artist + ' - ' + title + '\n' + track + ' - ' + album + '\n' + num + '/' + length + ' ' + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
- else:
-  return "MPD is offline."
+  return ""
 
 def volText():
- g = popen('amixer get Master').read().split()
+ g = popen('amixer -c 2 get PCM').read().split()
  out = "vol: " + g[-3][1:-1]
  if g[-1] == '[off]':
   out += ' (muted)'
@@ -214,53 +72,251 @@ def timeText():
 def getDefaultText():
  return mpdText() + ' ' + volText() + '\n' + timeText()
  
+def currentDir(tfile):
+ return dirname(musicdir + '/' + tfile)
+
+def isAnImage(filename):
+ ext = splitext(filename)[1]
+ return ext.lower() in ['.jpg', '.jpeg', '.bmp', '.png', '.gif']
+
+def findImagesIn(directory):
+ return filter(isAnImage, listdir(directory))
+
+def getCoverIn(directory): # FIX: improve this later
+ results = findImagesIn(directory)
+ res = next(results, None)
+ if res:
+  return directory + '/' + res
+ else:
+  return None
+
+### FIX THESE ###
+
+def readFromSocket():
+ global text, lastCall
+ try:
+  (a, b) = s.accept()
+ except socket.error:
+  pass
+ else:
+  text = str(a.recv(10000), 'utf-8').rstrip()
+  if text == 'HIDE' or text == 'KILL':
+   win.hide()
+  elif text == 'TOGGLE':
+   if win.isVisible():
+    win.hide()
+   else:
+    text = None
+    lastCall = time()
+    win.show()
+  else:
+   lastCall = time()
+   win.show()
+  a.close()
+
+def main():
+ global osdOnScreenTime, lastCall, win
+ app.processEvents()
+ readFromSocket()
+ if win.isVisible():
+  message()
+  win.raise_()
+  if not text:
+   if (time() - lastCall) > osdOnScreenTime: # hide the OSD
+    win.hide()
+  else: # text was provided
+   if (time() - lastCall) > max(osdOnScreenTime, (len(text.split("\n")))):
+    win.hide()
+
+def place():
+ global win
+ xs = 0
+ ys = 0
+ for i in range(QtGui.QDesktopWidget().screenCount()):
+  res = QtGui.QDesktopWidget().availableGeometry(i)
+  xs = xs + res.width()
+  ys = ys + res.height()
+ x = win.frameSize().width()
+ y = win.frameSize().height()
+ # win.move(xs-(x+10), ys-(y+17))
+ win.move(xs-(x+10), 1080-(y+17))
+
+def mpvText():
+ x = popen('ps x').read().split('\n')
+ mplayer = None
+ for i in x:
+  if i.find('mplayer') != -1:
+   mplayer = i[i.find('jack ')+5:]
+ return mplayer
+
+def mpdText(retrying=False):
+ global win
+ cs = win.mpdCurrentSong()
+ ss = win.mpdStatus()
+ if cs == None or ss == None:
+  return "MPD is offline. " + jcText()
+ else:
+  if ss['state'] == 'stop':
+   return "MPD is stopped. " + jcText()
+  # artist
+  try:
+   artist = cs['artist']
+  except KeyError:
+   artist = ''
+  # album
+  try:
+   album = cs['album']
+  except KeyError:
+   album = ''
+  # title
+  try:
+   title = cs['title']
+  except KeyError:
+   title = ''
+  # track
+  try:
+   track = cs['track']
+   if type(track) == list:
+    print("track value is: " + track)
+    track = track[0]
+  except:
+   track = ''
+  # playlist number
+  try:
+   num = str(int(ss['song'])+1)
+  except KeyError:
+   num = 'KeyError'
+  # playlist length
+  length = ss['playlistlength']
+  # state
+  if ss['state'] == 'play':
+   state = chr(9654)
+  else:
+   state = chr(9632)
+  if ss['consume'] == '1':
+   consume = chr(5607) + ' '
+  else:
+   consume = ''
+  # current time
+  try:
+   cur_time = ftime(ss['time'].split(':')[0])
+  except KeyError:
+   cur_time = "KeyError"
+  # total time
+  total_time = ftime(cs['time'])
+  # random mode
+  if ss['random'] == '0':
+   random = chr(8594)
+  else:
+   random = chr(8644)
+  return artist + ' - ' + title + '\n' + track + ' - ' + album + '\n' + num + '/' + length + ' ' + jcText() + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
+ # else:
+ #  return "MPD is offline. " + jcText()
+
 def message():
- global win, text, visible
+ global win, text
  if not text:
   ntext = getDefaultText()
  else:
   ntext = text
- win.label.set_markup('<small>' + escape(ntext) + '</small>')
- Gtk.main_iteration_do(False)
- if visible:
-  place()
-  show()
- 
-class MyWindow(Gtk.Window):
+ win.label.setText(ntext)
+ updatePic()
+ win.resize(win.sizeHint()) 
+ app.processEvents()
+ place()
+ win.show()
+
+def updatePic():
+ global win
+ cs = win.mpdCurrentSong()
+ if cs == None or len(cs) == 0:
+  win.piclabel.clear()
+  return
+ curdir = currentDir(cs['file'])
+ if win.cdir != curdir:
+  win.cdir = curdir
+  cover = getCoverIn(curdir)
+  if cover:
+   win.realPixmap = Qt.QPixmap(cover)
+  else:
+   win.realPixmap = None
+ if win.realPixmap == None:
+  win.piclabel.clear()
+ else:
+  win.piclabel.setPixmap(win.realPixmap.scaledToHeight(win.label.sizeHint().height()))
+
+class MyWindow(QtGui.QWidget):
  def __init__(self):
-  Gtk.Window.__init__(self, title="OSD", decorated=False, resizable=False, opacity=0.0, type=True)
-  self.label = Gtk.Label(label="OSD server started.")
-  self.label.modify_font(font_description_from_string("DejaVu Sans 10"))
-  self.label.set_justify(Gtk.Justification.RIGHT)
-  self.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 0, 0, 1))
-  self.label.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1, 1, 1, 1))
-  self.hbox = Gtk.HBox()
-  self.add(self.hbox)
-  # self.image = Gtk.Image()
-  # self.allocation = self.hbox.get_parent.get_allocation()
-  # print(allocation.height)
-  # desired_width = allocation.width
-  # desired_height = allocation.height
-  # self.image.set_from_file("/home/modula/splat1.gif")
-  # self.pixbuf = self.image.get_pixbuf()
-  # self.pixbuf = self.pixbuf.scale_simple(33, 33, 1)
-  # self.image.set_from_pixbuf(self.pb)
-  # self.image.scale_simple(33,33)
-  # self.hbox.add(self.image)
-  self.hbox.add(self.label)
-  # self.hbox.remove(self.image)
+  QtGui.QMainWindow.__init__(self, None, QtCore.Qt.X11BypassWindowManagerHint | QtCore.Qt.WindowStaysOnTopHint)
+  self.layout = QtGui.QHBoxLayout()
+  self.layout.setMargin(0)
+  self.layout.setSpacing(1)
+  self.layout.setSizeConstraint(Qt.QLayout.SetFixedSize)
+  self.setStyleSheet('color:white;background-color:black;font-size:8pt;')
+  self.piclabel = Qt.QLabel()
+  # self.piclabel.setStyleSheet('color:white;background-color:red;font-size:8pt;')
+  self.piclabel.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
+  self.layout.addWidget(self.piclabel)
+  self.label = Qt.QLabel()
+  # self.label.setStyleSheet('color:white;background-color:black;font-size:8pt;')
+  self.label.setAlignment(QtCore.Qt.AlignRight)
+  self.label.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
+  self.layout.addWidget(self.label)
+  self.setLayout(self.layout)
+  self.mpd = None
+  self.mpdConnect()
+  self.cdir = None
+  self.realPixmap = None
+
+ def mpdConnect(self):
+  if self.mpd == None:
+   self.mpd = mpd.MPDClient()
+   try:
+    self.mpd.connect('localhost', 6600) # FIX: get this info from the mpd conf file
+    # FIX: password
+   except ConnectionRefusedError:
+    self.mpd = None
+  else:
+   try:
+    self.mpd.ping()
+   except:
+    self.mpd = None
+    return self.mpdConnect()
+  return self.mpd
+
+ def mpdCurrentSong(self):
+  mp = self.mpdConnect()
+  if mp == None:
+   return None
+  else:
+   return mp.currentsong()
+
+ def mpdStatus(self):
+  mp = self.mpdConnect()
+  if mp == None:
+   return None
+  else:
+   return mp.status()
+
+ def hide(self):
+  super(MyWindow, self).hide()
+  
+ def mouseReleaseEvent(self, ev):
+  self.hide()
 
 if __name__ == '__main__':
- # global win, text
+ global s
+ # server
+ s = socket.socket()
+ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+ s.bind(('localhost', 9876))
+ s.settimeout(0)
+ s.listen(1)
+ app = QtGui.QApplication([])
  win = MyWindow()
- win.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
- win.connect('button-press-event', lambda w, e: hide())
- win.connect("delete-event", Gtk.main_quit)
- win.connect('visibility-notify-event', damage)
- win.show_all()
+ win.show()
  text = "Started"
- visible = True
- # message()
+ message()
  while True:
   main()
-  sleep(0.01)
+  sleep(0.1)
