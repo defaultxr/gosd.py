@@ -4,7 +4,6 @@ from PyQt4 import Qt, QtGui, QtCore
 from time import sleep, time, ctime
 from os import popen, listdir
 from os.path import expanduser, dirname, splitext
-from cgi import escape
 
 ### CONFIGURATION OPTIONS ###
 
@@ -17,7 +16,7 @@ global conf
 text = None
 lastCall = time()
 
-def mpdConfig():
+def mpdConfig(): # FIX: this should be more robust (i.e. remove the double quotes around option values automatically)
  d = {}
  file = open(expanduser('~') + '/.config/mpd/mpd.conf', 'r').readlines()
  for i in file:
@@ -55,7 +54,7 @@ def jcText():
  txt = tmp.read()
  tmp.close()
  if len(txt) > 0:
-  return chr(9679) + "(" + txt.split()[0] + ")"
+  return chr(9679) + "(" + txt.split()[0] + ") "
  else:
   return ""
 
@@ -80,11 +79,22 @@ def isAnImage(filename):
  return ext.lower() in ['.jpg', '.jpeg', '.bmp', '.png', '.gif']
 
 def findImagesIn(directory):
- return filter(isAnImage, listdir(directory))
+ return list(filter(isAnImage, listdir(directory)))
 
 def getCoverIn(directory): # FIX: improve this later
  results = findImagesIn(directory)
- res = next(results, None)
+ res = None
+ if len(results) > 0:
+  for i in results:
+   if i.lower().find('front') != -1:
+    res = i
+    break
+   elif i.lower().find('cover') != -1:
+    res = i
+    break
+  if res == None:
+   results.sort()
+   res = results[0]
  if res:
   return directory + '/' + res
  else:
@@ -243,7 +253,7 @@ def updatePic():
  if win.realPixmap == None:
   win.piclabel.clear()
  else:
-  win.piclabel.setPixmap(win.realPixmap.scaledToHeight(win.label.sizeHint().height()))
+  win.piclabel.setPixmap(win.realPixmap.scaledToHeight(win.label.sizeHint().height(), 1)) # the 1 = smooth transformation.
 
 class MyWindow(QtGui.QWidget):
  def __init__(self):
