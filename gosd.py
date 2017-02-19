@@ -203,6 +203,10 @@ def mpdText(retrying=False):
    state = chr(9654)
   else:
    state = chr(9632)
+  if ss['single'] == '1':
+   single = chr(128472) + ' '
+  else:
+   single = ''
   if ss['consume'] == '1':
    consume = chr(5607) + ' '
   else:
@@ -219,7 +223,7 @@ def mpdText(retrying=False):
    random = chr(8594)
   else:
    random = chr(8644)
-  return artist + ' - ' + title + '\n' + track + ' - ' + album + '\n' + num + '/' + length + ' ' + jcText() + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
+  return artist + ' - ' + title + '\n' + track + ' - ' + album + '\n' + num + '/' + length + ' ' + jcText() + single + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
  # else:
  #  return "MPD is offline. " + jcText()
 
