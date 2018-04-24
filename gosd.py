@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import socket
-import otext
+import osdtext
 from PyQt4 import Qt, QtGui, QtCore
 from time import sleep, time
 from os import listdir
@@ -12,12 +12,13 @@ osdOnScreenTime = 10 # time the OSD will stay on screen
 
 ### INITIALIZATION ###
 
-global text, lastCall # FIX: remove these
 text = None
 lastCall = time()
-musicdir = otext.mpdMusicDir()
+musicdir = osdtext.mpdMusicDir()
 
 ### FUNCTIONS ###
+
+# album cover functions
 
 def currentDir(tfile):
   return dirname(musicdir + '/' + tfile)
@@ -29,7 +30,7 @@ def isAnImage(filename):
 def findImagesIn(directory):
   return list(filter(isAnImage, listdir(directory)))
 
-def getCoverIn(directory): # FIX: improve this later
+def getCoverIn(directory):
   results = findImagesIn(directory)
   res = None
   if len(results) > 0:
@@ -48,7 +49,9 @@ def getCoverIn(directory): # FIX: improve this later
   else:
     return None
 
-def readFromSocket():
+# behavior/logic functions
+
+def readFromSocket(): # process the data coming in from the socket
   global text, lastCall
   try:
     (a, b) = s.accept()
@@ -71,36 +74,13 @@ def readFromSocket():
     a.close()
 
 def main():
-  global osdOnScreenTime, lastCall, win
+  global osdOnScreenTime, lastCall, win, text
   app.processEvents()
   readFromSocket()
-  if win.isVisible():
-    message()
-    win.raise_()
-    if not text:
-      if (time() - lastCall) > osdOnScreenTime: # hide the OSD
-        win.hide()
-    else: # text was provided
-      if (time() - lastCall) > max(osdOnScreenTime, (len(text.split("\n")))):
-        win.hide()
-
-def place():
-  global win
-  xs = 0
-  ys = 0
-  for i in range(2): # adjust this number
-    res = QtGui.QDesktopWidget().availableGeometry(i)
-    xs = xs + res.width()
-    ys = ys + res.height()
-  x = win.frameSize().width()
-  y = win.frameSize().height()
-  # win.move(xs-(x+10), ys-(y+17))
-  win.move(xs-(x+10), 1080-(y+17))
-
-def message():
-  global win, text
+  if not win.isVisible():
+    return
   if not text:
-    ntext = otext.getText()
+    ntext = osdtext.getText()
   else:
     ntext = text
   win.label.setText(ntext)
@@ -109,11 +89,20 @@ def message():
   app.processEvents()
   place()
   win.show()
+  win.raise_()
+  if not text:
+    if (time() - lastCall) > osdOnScreenTime: # hide the OSD
+      win.hide()
+  else: # text was provided
+    if (time() - lastCall) > max(osdOnScreenTime, (len(text.split("\n")))):
+      win.hide()
+
+# gui stuff
 
 def updatePic():
   global win
-  cs = otext.mpdCurrentSong()
-  if cs == None or len(cs) == 0 or otext.mpdStatus()['state'] == 'stop':
+  cs = osdtext.mpdCurrentSong()
+  if cs == None or len(cs) == 0 or osdtext.mpdStatus()['state'] == 'stop':
     win.piclabel.clear()
     return
   curdir = currentDir(cs['file'])
@@ -129,6 +118,19 @@ def updatePic():
   else:
     win.piclabel.setPixmap(win.realPixmap.scaledToHeight(win.label.sizeHint().height(), 1)) # 1 = linear interpolation for image scaling
 
+def place():
+  global win
+  xs = 0
+  ys = 0
+  for i in range(2): # adjust this number
+    res = QtGui.QDesktopWidget().availableGeometry(i)
+    xs = xs + res.width()
+    ys = ys + res.height()
+  x = win.frameSize().width()
+  y = win.frameSize().height()
+  # win.move(xs-(x+10), ys-(y+17))
+  win.move(xs-(x+10), 1080-(y+17))
+
 class MyWindow(QtGui.QWidget):
   def __init__(self):
     QtGui.QMainWindow.__init__(self, None, QtCore.Qt.X11BypassWindowManagerHint | QtCore.Qt.WindowStaysOnTopHint)
@@ -138,11 +140,9 @@ class MyWindow(QtGui.QWidget):
     self.layout.setSizeConstraint(Qt.QLayout.SetFixedSize)
     self.setStyleSheet('color:white;background-color:black;font-size:8pt;')
     self.piclabel = Qt.QLabel()
-    # self.piclabel.setStyleSheet('color:white;background-color:red;font-size:8pt;')
     self.piclabel.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
     self.layout.addWidget(self.piclabel)
     self.label = Qt.QLabel()
-    # self.label.setStyleSheet('color:white;background-color:black;font-size:8pt;')
     self.label.setAlignment(QtCore.Qt.AlignRight)
     self.label.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
     self.layout.addWidget(self.label)
@@ -157,8 +157,7 @@ class MyWindow(QtGui.QWidget):
     self.hide()
 
 if __name__ == '__main__':
-  global s
-  # server
+  global s # server
   s = socket.socket()
   s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
   s.bind(('localhost', 9876))
@@ -168,7 +167,6 @@ if __name__ == '__main__':
   win = MyWindow()
   win.show()
   text = "Started"
-  message()
   while True:
     main()
     sleep(0.1)

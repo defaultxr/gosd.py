@@ -88,6 +88,9 @@ def tagText():
   file = cs['file']
   albumdir = '/'.join(file.split('/')[:-1])
   artistdir = '/'.join(file.split('/')[:-2])
+  if artistdir == '': # this seems to fix the problem when songs are in the artist directory directly instead of being in an album directory
+    artistdir = albumdir
+    albumdir = ''
   tags = getTags('/media/music/' + file)
   albumtags = getTags('/media/music/' + albumdir)
   artisttags = getTags('/media/music/' + artistdir)
