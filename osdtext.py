@@ -15,6 +15,7 @@ def ftime(time): # "format time". take a time in seconds and return a prettified
 
 global conf
 def mpdConfig(): # FIX: this should be more robust (i.e. remove the double quotes around option values automatically)
+  """Parse the MPD config file to get the necessary information from it."""
   d = {}
   file = open(expanduser('~') + '/.config/mpd/mpd.conf', 'r').readlines()
   for i in file:
@@ -26,6 +27,7 @@ def mpdConfig(): # FIX: this should be more robust (i.e. remove the double quote
 conf = mpdConfig()
 
 def mpdGetPassword():
+  """Return the MPD password as parsed from the config file."""
   if 'password' in conf:
     pw = conf['password']
     return pw[1:pw.find('@')]
@@ -35,6 +37,7 @@ def mpdGetPassword():
 password = mpdGetPassword()
 
 def mpdMusicDir():
+  """Return the directory where the music is stored, as parsed from the MPD config file."""
   if 'music_directory' in conf:
     return conf['music_directory'][1:-1]
 
@@ -71,9 +74,10 @@ def mpdStatus():
   else:
     return mp.status()
 
-# tags
+# tmsu tag functions
 
 def getTags(file):
+  """Get the tmsu tags of FILE."""
   handle = popen('tmsu -D /media/music/.tmsu/db tags %s' % quote(file))
   tags = handle.read().rstrip()
   handle.close()
@@ -82,6 +86,7 @@ def getTags(file):
   return tags
  
 def tagText():
+  """Return the text representing whether the current artist and album directories, and the current track are tagged with TMSU."""
   cs = mpdCurrentSong()
   if cs == None:
     return ''
@@ -110,20 +115,21 @@ def tagText():
   res = res + " "
   return res
 
-# other media players (this is not used)
+# other media players (not used)
 
-def mpvText():
-  x = popen('ps x').read().split('\n')
-  mplayer = None
-  for i in x:
-    if i.find('mplayer') != -1:
-      mplayer = i[i.find('jack ')+5:]
-  return mplayer
+# def mpvtext():
+#   """Return text if mpv is playing. this doesn't actually work, though, and is not used."""
+#   x = popen('ps x').read().split('\n')
+#   mplayer = none
+#   for i in x:
+#     if i.find('mpv') != -1:
+#       mplayer = i[i.find('jack ')+5:]
+#   return mplayer
 
 # jack_capture
 
 def jcText():
-  # is jack_capture running?
+  """Return the text representing the jack_capture status (i.e. shows a circle if it is)."""
   tmp = popen("ps -eo etime,cmd|grep '^[ ]*[0-9]*:[0-9]* jack_captu[r]e'", "r")
   txt = tmp.read()
   tmp.close()
@@ -135,6 +141,7 @@ def jcText():
 # volume
 
 def volText():
+  """Returns the text representing the current ALSA volume."""
   g = popen('amixer -c 2 get PCM').read().split()
   out = "vol: " + g[-3][1:-1]
   if g[-1] == '[off]':
@@ -144,19 +151,26 @@ def volText():
 # date and time
 
 def timeText():
+  """Returns the date and time string."""
   return ctime()
 
-#
+# mpd information
 
 def mpdText(retrying=False):
+  """Returns the text showing MPD information."""
   global mpdc
   cs = mpdCurrentSong()
   ss = mpdStatus()
   if cs == None or ss == None:
     return "MPD is offline. " + jcText()
   else:
+    # random mode
+    if ss['random'] == '0':
+      random = chr(8594)
+    else:
+      random = chr(8644)
     if ss['state'] == 'stop':
-      return "MPD is stopped. " + jcText()
+      return "MPD is stopped. " + random + ' ' + jcText()
     # artist
     try:
       artist = cs['artist']
@@ -207,14 +221,10 @@ def mpdText(retrying=False):
       cur_time = "KeyError"
     # total time
     total_time = ftime(cs['time'])
-    # random mode
-    if ss['random'] == '0':
-      random = chr(8594)
-    else:
-      random = chr(8644)
     return artist + ' - ' + title + '\n' + track + ' - ' + album + '\n' + tagText() + num + '/' + length + ' ' + jcText() + single + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
 
 def getText():
+  """The actual function called to get the full default text of the OSD."""
   return mpdText() + ' ' + volText() + '\n' + timeText()
 
 mpdc = None

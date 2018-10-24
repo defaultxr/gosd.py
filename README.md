@@ -30,6 +30,7 @@ It has the following problems:
 - Written in Python (which is slow, though it's not a huge problem in this case). In the (probably far) future I'd like to rewrite this in Rust.
 - User customizations must be done by editing the source of the script itself.
 - No functionality to detect the number of screens you have, nor to easily change the position of the OSD (you'll need to edit the `place` function in `gosd.py`).
+- Assumes your music is stored in an ARTIST/ALBUM/TRACK structure.
 - Plenty others.
 
 How to Use
