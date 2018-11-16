@@ -1,9 +1,11 @@
 gosd.py
 =======
 
+![gosd.py screenshot](/screenshot.png?raw=true "screenshot")
+
 A simple Qt OSD written in Python 3 and designed for use with [MPD](https://www.musicpd.org/).
 
-I made this because I ffcouldn't find any OSDs I liked. This OSD shows the following information by default:
+I made this because I couldn't find any OSDs I liked. As seen in the screenshot, this OSD shows the following information by default:
 
 - MPD now playing information (artist, song title, track number, album).
 - Whether the artist directory, album directory, and track itself are tagged with [TMSU](https://tmsu.org/).
@@ -40,15 +42,14 @@ Run `python gosd.py &` and then you should see the word "Started" in the bottom 
 
 If you want the OSD to display something else, you can run gosd_go.py with a dash as an argument: `python gosd_go.py -`. gosd_go.py will read from standard input, and once it gets an 'End Of File' (usually you can make this by pressing `ctrl+d`), it will send all the text to the gosd process to be displayed. This can be very useful, for example, to display MPD's current playlist with pipes: `mpc playlist | python gosd_go.py -`. Alternatively, you can specify the text as the arguments: `python gosd_go.py hi there` will display "hi there" in the OSD.
 
+If you want to change what information is displayed in the OSD, edit the [osdtext.py](/osdtext.py) file; specifically, the `getText` function is what is called to generate the default text.
+
 TODO
 ====
 
 Right now gosd.py is "good enough" for me, but I do want to improve a few things:
 
 - Improve the command-line argument syntax of `gosd_go.py`.
-
 - Allow specifying the hide time on the command line.
-
 - Allow specifying the text alignment on the command line.
-
 - Hide the album cover when showing something other than the default text.
