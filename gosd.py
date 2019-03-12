@@ -122,7 +122,7 @@ def place():
   global win
   xs = 0
   ys = 0
-  for i in range(2): # adjust this number
+  for i in range(2): # adjust this number to set which monitor you want the OSD to show up on. # FIX
     res = QtGui.QDesktopWidget().availableGeometry(i)
     xs = xs + res.width()
     ys = ys + res.height()

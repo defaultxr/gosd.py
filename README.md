@@ -35,6 +35,14 @@ It has the following problems:
 - Assumes your music is stored in an ARTIST/ALBUM/TRACK structure.
 - Plenty others.
 
+Requirements
+============
+
+- Python 3+
+- python-pyqt4
+- python-sip-pyqt4 (when using python-pyqt4 4.12.2 or above)
+- python-mpd2 (for getting MPD status information)
+
 How to Use
 ==========
 
