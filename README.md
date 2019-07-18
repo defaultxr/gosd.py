@@ -39,9 +39,10 @@ Requirements
 ============
 
 - Python 3+
-- python-pyqt4
-- python-sip-pyqt4 (when using python-pyqt4 4.12.2 or above)
-- python-mpd2 (for getting MPD status information)
+- `qtpy` - a consistent interface to various versions of Qt
+- any of [qtpy's required backends](https://pypi.org/project/QtPy/): `pyqt5`, `pyqt`, `pyqt4`, `pyside2`, or `pyside`
+- `python-mpd2` - for getting MPD status information
+- Qt, obviously
 
 How to Use
 ==========

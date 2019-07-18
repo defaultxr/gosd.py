@@ -142,7 +142,7 @@ def jcText():
 
 def volText():
   """Returns the text representing the current ALSA volume."""
-  g = popen('amixer -c 2 get PCM').read().split()
+  g = popen('amixer -c 1 get Master').read().split()
   out = "vol: " + g[-3][1:-1]
   if g[-1] == '[off]':
     out += ' (muted)'

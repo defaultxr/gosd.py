@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import socket
 import osdtext
-from PyQt4 import Qt, QtGui, QtCore
+from qtpy import QtWidgets, QtGui, QtCore
 from time import sleep, time
 from os import listdir
 from os.path import dirname, splitext
@@ -110,7 +110,7 @@ def updatePic():
     win.cdir = curdir
     cover = getCoverIn(curdir)
     if cover:
-      win.realPixmap = Qt.QPixmap(cover)
+      win.realPixmap = QtGui.QPixmap(cover)
     else:
       win.realPixmap = None
   if win.realPixmap == None:
@@ -123,7 +123,7 @@ def place():
   xs = 0
   ys = 0
   for i in range(2): # adjust this number to set which monitor you want the OSD to show up on. # FIX
-    res = QtGui.QDesktopWidget().availableGeometry(i)
+    res = QtWidgets.QDesktopWidget().availableGeometry(i)
     xs = xs + res.width()
     ys = ys + res.height()
   x = win.frameSize().width()
@@ -131,20 +131,20 @@ def place():
   # win.move(xs-(x+10), ys-(y+17))
   win.move(xs-(x+10), 1080-(y+17))
 
-class MyWindow(QtGui.QWidget):
+class MyWindow(QtWidgets.QWidget):
   def __init__(self):
-    QtGui.QMainWindow.__init__(self, None, QtCore.Qt.X11BypassWindowManagerHint | QtCore.Qt.WindowStaysOnTopHint)
-    self.layout = QtGui.QHBoxLayout()
-    self.layout.setMargin(0)
+    QtWidgets.QMainWindow.__init__(self, None, QtCore.Qt.X11BypassWindowManagerHint | QtCore.Qt.WindowStaysOnTopHint)
+    self.layout = QtWidgets.QHBoxLayout()
+    self.layout.setContentsMargins(0, 0, 0, 0)
     self.layout.setSpacing(1)
-    self.layout.setSizeConstraint(Qt.QLayout.SetFixedSize)
-    self.setStyleSheet('color:white;background-color:black;font-size:8pt;')
-    self.piclabel = Qt.QLabel()
-    self.piclabel.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
+    self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+    self.setStyleSheet('color:white;background-color:black;font-size:10pt;')
+    self.piclabel = QtWidgets.QLabel()
+    self.piclabel.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
     self.layout.addWidget(self.piclabel)
-    self.label = Qt.QLabel()
+    self.label = QtWidgets.QLabel()
     self.label.setAlignment(QtCore.Qt.AlignRight)
-    self.label.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
+    self.label.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
     self.layout.addWidget(self.label)
     self.setLayout(self.layout)
     self.cdir = None
@@ -163,7 +163,7 @@ if __name__ == '__main__':
   s.bind(('localhost', 9876))
   s.settimeout(0)
   s.listen(1)
-  app = QtGui.QApplication([])
+  app = QtWidgets.QApplication([])
   win = MyWindow()
   win.show()
   text = "Started"
