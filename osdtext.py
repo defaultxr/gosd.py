@@ -186,6 +186,17 @@ def mpdText(retrying=False):
       title = cs['title']
     except KeyError:
       title = ''
+    if type(title) == list:
+      title = ''.join(title)
+    # disc number
+    try:
+      disc = cs['disc']
+      if type(disc) == list:
+        disc = disc[0] + '/' + disc[1] + '.'
+      else:
+        disc = cs['disc'] + '.'
+    except KeyError:
+      disc = ''
     # track
     try:
       track = cs['track']
@@ -221,7 +232,7 @@ def mpdText(retrying=False):
       cur_time = "KeyError"
     # total time
     total_time = ftime(cs['time'])
-    return artist + ' - ' + title + '\n' + track + ' - ' + album + '\n' + tagText() + num + '/' + length + ' ' + jcText() + single + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
+    return artist + ' - ' + title + '\n' + disc + track + ' - ' + album + '\n' + tagText() + num + '/' + length + ' ' + jcText() + single + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
 
 def getText():
   """The actual function called to get the full default text of the OSD."""
