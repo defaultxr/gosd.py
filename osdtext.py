@@ -9,7 +9,7 @@ from shlex import quote
 
 def ftime(time): # "format time". take a time in seconds and return a prettified string like 3:22
   time = int(time)
-  return str(int(time/60)) + ':' + '%.2d' % int(time%60)
+  return str(int(time/60)) + ':%.2d' % int(time%60)
 
 # unused / WIP mpd stuff
 
@@ -17,7 +17,7 @@ global conf
 def mpdConfig(): # FIX: this should be more robust (i.e. remove the double quotes around option values automatically)
   """Parse the MPD config file to get the necessary information from it."""
   d = {}
-  file = open(expanduser('~') + '/.config/mpd/mpd.conf', 'r').readlines()
+  file = open(expanduser('~/.config/mpd/mpd.conf'), 'r').readlines() # FIX: use $XDG_CONFIG_DIR instead
   for i in file:
     split = i.split()
     if len(split) == 2:
@@ -101,7 +101,7 @@ def tagText():
   artisttags = getTags('/media/music/' + artistdir)
   res = ""
   if "good.song" in tags:
-    res = res + "❤"
+    res = res + "\N{HEAVY BLACK HEART}"
   try:
     tags.remove('good.song')
   except:
@@ -118,7 +118,7 @@ def tagText():
 # other media players (not used)
 
 # def mpvtext():
-#   """Return text if mpv is playing. this doesn't actually work, though, and is not used."""
+#   """Return text if mpv is playing. This doesn't actually work, though, and is not used."""
 #   x = popen('ps x').read().split('\n')
 #   mplayer = none
 #   for i in x:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# FIX: can use 'ffmpeg -i file.mp3 cover.png -y' to get the album cover from file.mp3 as a png. alternatively, exiftool also works.
 import socket
 import osdtext
 from qtpy import QtWidgets, QtGui, QtCore
