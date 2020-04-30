@@ -140,9 +140,27 @@ def jcText():
 
 # volume
 
+# devices to look for (first takes priority)
+devices = ["Master"]
+
+card = None
+device = None
+for dev in devices:
+  if not device:
+    for i in range(10):
+      out = popen('amixer -c %d' % (i)).read()
+      if out.find(dev) != -1:
+        device = dev
+        card = i
+        # print("Found '%s' on card %d." % (device,i))
+        break
+      elif out[:13] == 'Usage: amixer':
+        break
+
 def volText():
   """Returns the text representing the current ALSA volume."""
-  g = popen('amixer -c 1 get Master').read().split()
+  query = 'amixer -c %d get "%s"' % (card, device)
+  g = popen(query).readlines()[-1].split()
   out = "vol: " + g[-3][1:-1]
   if g[-1] == '[off]':
     out += ' (muted)'
