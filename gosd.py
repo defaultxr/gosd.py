@@ -10,6 +10,7 @@ from os.path import dirname, splitext
 ### CONFIGURATION OPTIONS ###
 
 osdOnScreenTime = 10 # time the OSD will stay on screen
+style = 'color:"#F81894";background-color:"#111111";font-size:10pt;' # font color, background color, font size, etc.
 
 ### INITIALIZATION ###
 
@@ -139,7 +140,7 @@ class MyWindow(QtWidgets.QWidget):
     self.layout.setContentsMargins(0, 0, 0, 0)
     self.layout.setSpacing(1)
     self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
-    self.setStyleSheet('color:white;background-color:black;font-size:10pt;')
+    self.setStyleSheet(style)
     self.piclabel = QtWidgets.QLabel()
     self.piclabel.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
     self.layout.addWidget(self.piclabel)
