@@ -55,24 +55,33 @@ def getCoverIn(directory):
 
 def readFromSocket(): # process the data coming in from the socket
   global text, lastCall
+  reply = '0'
   try:
     (a, b) = s.accept()
   except socket.error:
     pass
   else:
-    text = str(a.recv(10000), 'utf-8').rstrip()
-    if text == 'HIDE' or text == 'KILL':
+    received = str(a.recv(10000), 'utf-8').rstrip()
+    if received == 'HIDE' or received == 'KILL':
+      if not win.isVisible():
+        reply = '1'
       win.hide()
-    elif text == 'TOGGLE':
+    elif received == 'TOGGLE':
       if win.isVisible():
         win.hide()
       else:
         text = None
         lastCall = time()
         win.show()
-    else:
+    elif received == 'SHOW':
+      text = None
       lastCall = time()
       win.show()
+    else:
+      text = received
+      lastCall = time()
+      win.show()
+    a.send(bytes(reply + '\n', 'utf-8'))
     a.close()
 
 def main():
