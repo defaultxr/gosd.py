@@ -107,7 +107,7 @@ def tagText():
   except:
     pass
   if len(tags) > 0:
-    res = "T" + res
+    res = "t" + res
   if len(albumtags) > 0:
     res = "a" + res
   if len(artisttags) > 0:
@@ -210,16 +210,14 @@ def mpdText(retrying=False):
     try:
       disc = cs['disc']
       if type(disc) == list:
-        disc = disc[0] + '/' + disc[1] + '.'
-      else:
-        disc = cs['disc'] + '.'
+        disc = disc[0] + '/' + disc[1]
+      disc = 'd' + disc + ': ' # 💿🖸
     except KeyError:
       disc = ''
     # track
     try:
       track = cs['track']
       if type(track) == list:
-        print("track value is: " + track)
         track = track[0]
     except:
       track = ''
