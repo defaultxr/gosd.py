@@ -62,7 +62,7 @@ def readFromSocket(): # process the data coming in from the socket
     pass
   else:
     received = str(a.recv(10000), 'utf-8').rstrip()
-    if received == 'HIDE' or received == 'KILL':
+    if received == 'HIDE':
       if not win.isVisible():
         reply = '1'
       win.hide()
