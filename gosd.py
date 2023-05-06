@@ -97,7 +97,6 @@ def main():
   win.label.setText(ntext)
   updatePic()
   win.resize(win.sizeHint()) 
-  app.processEvents()
   place()
   win.show()
   win.raise_()
