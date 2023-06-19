@@ -7,18 +7,21 @@ from time import sleep, time
 from os import listdir
 from os.path import dirname, splitext
 
-### CONFIGURATION OPTIONS ###
+# per https://www.jwz.org/xscreensaver/faq.html#popup-windows :
+# Pop-ups, notifications, and all similar windows should be mapped as WM_TRANSIENT_FOR and/or _NET_WM_WINDOW_TYPE_DIALOG windows, as has been explained by the ICCCM and the FreeDesktop EWMH specifications for decades.
 
-osdOnScreenTime = 10 # time the OSD will stay on screen
+# configuration
+
+osdOnScreenTime = 10 # time in seconds that the OSD will stay on screen
 style = 'color:"#F81894";background-color:"#111111";font-size:10pt;' # font color, background color, font size, etc.
+screenNumber = 0 # which monitor the OSD should appear on.
+osdOffset = (10, 17) # the OSD's offset from the corner of the screen
 
-### INITIALIZATION ###
+# code
 
 text = None
 lastCall = time()
 musicdir = osdtext.mpdMusicDir()
-
-### FUNCTIONS ###
 
 # album cover functions
 
@@ -97,7 +100,7 @@ def main():
   win.label.setText(ntext)
   updatePic()
   win.resize(win.sizeHint()) 
-  place()
+  place(win)
   win.show()
   win.raise_()
   if not text:
@@ -128,18 +131,15 @@ def updatePic():
   else:
     win.piclabel.setPixmap(win.realPixmap.scaledToHeight(win.label.sizeHint().height(), 1)) # 1 = linear interpolation for image scaling
 
-def place():
-  global win
-  xs = 0
-  ys = 0
-  for i in range(2): # adjust this number to set which monitor you want the OSD to show up on. # FIX
-    res = QtWidgets.QDesktopWidget().availableGeometry(i)
-    xs = xs + res.width()
-    ys = ys + res.height()
-  x = win.frameSize().width()
-  y = win.frameSize().height()
-  # win.move(xs-(x+10), ys-(y+17))
-  win.move(xs-(x+10), 1080-(y+17))
+def place(win):
+  """Place the window in the correct position on the screen."""
+  screenBottomRight = QtWidgets.QDesktopWidget().availableGeometry(screenNumber).bottomRight()
+  screenBottomRight = [screenBottomRight.x(), screenBottomRight.y()]
+  frameSize = win.frameSize()
+  frameSize = [frameSize.width(), frameSize.height()]
+  zipped = zip(screenBottomRight, [-1 * i for i in osdOffset], [-1 * i for i in frameSize])
+  loc = [sum(item) for item in zipped]
+  win.move(*loc)
 
 class MyWindow(QtWidgets.QWidget):
   def __init__(self):
