@@ -247,7 +247,10 @@ def mpdText(retrying=False):
     except KeyError:
       cur_time = "KeyError"
     # total time
-    total_time = ftime(cs['time'])
+    try:
+      total_time = ftime(cs['time'])
+    except KeyError:
+      total_time = "KeyError"
     return artist + ' - ' + title + '\n' + disc + track + ' - ' + album + '\n' + tagText() + num + '/' + length + ' ' + jcText() + single + consume + state + ' ' + cur_time + '/' + total_time + ' ' + random
 
 def getText():
