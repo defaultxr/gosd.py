@@ -211,7 +211,7 @@ def mpdText(retrying=False):
       disc = cs['disc']
       if type(disc) == list:
         disc = disc[0] + '/' + disc[1]
-      disc = 'd' + disc + ': ' # 💿🖸
+      disc = 'd ' + disc + ' - ' # 💿🖸
     except KeyError:
       disc = ''
     # track
