@@ -1,9 +1,15 @@
 #!/usr/bin/env python
-import socket, mpd
-from os import popen
-from os.path import expanduser
+import os, socket, mpd, shlex
 from time import ctime
-from shlex import quote
+
+# You shouldn't need to edit this file, as it will automatically (attempt to) parse MPD's configuration file.
+# Note that it will only parse until the first line ending in an opening curly bracket ({)
+# so you should make sure your global MPD settings should come before that.
+
+# configuration
+
+music_directory = None # None = autodetect from MPD's configuration file.
+password = None # None = autodetect from MPD's configuration file.
 
 # utility functions
 
@@ -11,45 +17,64 @@ def ftime(time): # "format time". take a time in seconds and return a prettified
   time = int(time)
   return str(int(time/60)) + ':%.2d' % int(time%60)
 
-# unused / WIP mpd stuff
+# mpd stuff
 
-global conf
-def mpdConfig(): # FIX: this should be more robust (i.e. remove the double quotes around option values automatically)
-  """Parse the MPD config file to get the necessary information from it."""
-  d = {}
-  file = open(expanduser('~/.config/mpd/mpd.conf'), 'r').readlines() # FIX: use $XDG_CONFIG_DIR instead
-  for i in file:
-    split = i.split()
-    if len(split) == 2:
-      d[split[0]] = split[1]
-  return d
+global mpd_conf # the MPD configuration parsed as a dictionary.
+mpd_conf = None
 
-conf = mpdConfig()
+def mpdConfigFile():
+  """Get the location of the MPD config file."""
+  try:
+    xdg_config_home = os.environ['XDG_CONFIG_HOME']
+  except KeyError:
+    xdg_config_home = os.path.expanduser('~/.config')
+  possibilities = [xdg_config_home + '/mpd/mpd.conf', os.path.expanduser('~/.mpdconf'), os.path.expanduser('~/.mpd/mpd.conf'), '/etc/mpd.conf']
+  try:
+    possibilities += [os.environ['CONF_FILE']]
+  except KeyError:
+    pass
+  for maybe in possibilities:
+    if os.path.exists(maybe):
+      return maybe
 
-def mpdGetPassword():
-  """Return the MPD password as parsed from the config file."""
-  if 'password' in conf:
+def mpdConfig(reparse=False):
+  """Parse the MPD config file into a dictionary."""
+  global mpd_conf
+  if reparse or not mpd_conf:
+    mpd_conf = {}
+    with open(mpdConfigFile()) as inp:
+      for line in inp.readlines():
+        line = line.rstrip()
+        split = shlex.split(line, comments=True)
+        if line[-1] == '{':
+          break
+        if len(split) != 2:
+          continue
+        mpd_conf[split[0]] = split[1]
+  return mpd_conf
+
+def mpdConfigValue(key):
+  conf = mpdConfig()
+  if not key in conf:
+    return None
+  if key == 'password':
     pw = conf['password']
     return pw[1:pw.find('@')]
-  else:
-    return None
-
-password = mpdGetPassword()
-
-def mpdMusicDir():
-  """Return the directory where the music is stored, as parsed from the MPD config file."""
-  if 'music_directory' in conf:
-    return conf['music_directory'][1:-1]
-
-# actual mpd stuff
+  if key == 'music_directory':
+    global music_directory
+    if music_directory:
+      return music_directory
+  return conf[key]
 
 def mpdConnect():
   global mpdc
   if mpdc == None:
     mpdc = mpd.MPDClient()
     try:
-      mpdc.connect('localhost', 6600) # FIX: get this info from the mpd conf file
-      # FIX: password
+      pw = mpdConfigValue('password')
+      if pw:
+        mpdc.password(pw)
+      mpdc.connect('localhost', int(mpdConfigValue('port')))
     except ConnectionRefusedError:
       mpdc = None
   else:
@@ -78,12 +103,22 @@ def mpdStatus():
 
 def getTags(file):
   """Get the tmsu tags of FILE."""
-  handle = popen('tmsu -D /media/music/.tmsu/db tags %s' % quote(file))
+  handle = os.popen('tmsu -D /media/music/.tmsu/db tags %s' % shlex.quote(file))
   tags = handle.read().rstrip()
   handle.close()
   tags = tags[tags.rfind(':')+1:]
   tags = tags.split()
   return tags
+
+def tagSymbols(tags):
+  res = str(len(tags))
+  if "on.phone" in tags:
+    res += "\N{BLACK TELEPHONE}"
+  for good in ['good.song', 'good.album', 'good.artist']:
+    if good in tags:
+      res += "\N{HEAVY BLACK HEART}" # 💿 🎜
+      break
+  return res
  
 def tagText():
   """Return the text representing whether the current artist and album directories, and the current track are tagged with TMSU."""
@@ -96,30 +131,17 @@ def tagText():
   if artistdir == '': # this seems to fix the problem when songs are in the artist directory directly instead of being in an album directory
     artistdir = albumdir
     albumdir = ''
-  tags = getTags('/media/music/' + file)
-  albumtags = getTags('/media/music/' + albumdir)
-  artisttags = getTags('/media/music/' + artistdir)
-  res = ""
-  if "good.song" in tags:
-    res = res + "\N{HEAVY BLACK HEART}"
-  try:
-    tags.remove('good.song')
-  except:
-    pass
-  if len(tags) > 0:
-    res = "t" + res
-  if len(albumtags) > 0:
-    res = "a" + res
-  if len(artisttags) > 0:
-    res = "A" + res
-  res = res + " "
-  return res
+  music_dir = mpdConfigValue('music_directory')
+  tags = getTags(music_dir + '/' + file)
+  albumtags = getTags(music_dir + '/' + albumdir)
+  artisttags = getTags(music_dir + '/' + artistdir)
+  return "A" + tagSymbols(artisttags) + " a" + tagSymbols(albumtags) + " t" + tagSymbols(tags) + " "
 
 # other media players (not used)
 
 # def mpvtext():
 #   """Return text if mpv is playing. This doesn't actually work, though, and is not used."""
-#   x = popen('ps x').read().split('\n')
+#   x = os.popen('ps x').read().split('\n')
 #   mplayer = none
 #   for i in x:
 #     if i.find('mpv') != -1:
@@ -130,7 +152,7 @@ def tagText():
 
 def jcText():
   """Return the text representing the jack_capture status (i.e. shows a circle if it is)."""
-  tmp = popen("ps -eo etime,cmd|grep '^[ ]*[0-9]*:[0-9]* jack_captu[r]e'", "r")
+  tmp = os.popen("ps -eo etime,cmd|grep '^[ ]*[0-9]*:[0-9]* jack_captu[r]e'", "r")
   txt = tmp.read()
   tmp.close()
   if len(txt) > 0:
@@ -140,37 +162,18 @@ def jcText():
 
 # volume
 
-# devices to look for (first takes priority)
-devices = ["Master"]
-
-card = None
-device = None
-for dev in devices:
-  if not device:
-    for i in range(10):
-      out = popen('amixer -c %d' % (i)).read()
-      if out.find(dev) != -1:
-        device = dev
-        card = i
-        # print("Found '%s' on card %d." % (device,i))
-        break
-      elif out[:13] == 'Usage: amixer':
-        break
-
 def volText():
   """Returns the text representing the current ALSA volume."""
-  query = 'amixer -c %d get "%s"' % (card, device)
-  g = popen(query).readlines()[-1].split()
-  out = "vol: " + g[-3][1:-1]
-  if g[-1] == '[off]':
-    out += ' (muted)'
-  return out
-
-# date and time
-
-def timeText():
-  """Returns the date and time string."""
-  return ctime()
+  query = 'amixer'
+  for line in os.popen(query).readlines():
+    if '%' in line:
+      split = line.split()
+      vol = split[-2]
+      on = split[-1]
+      mutetext = ''
+      if on != '[on]':
+        mutetext = ' (muted)'
+      return 'vol: ' + vol[1:-1] + mutetext
 
 # mpd information
 
@@ -255,7 +258,7 @@ def mpdText(retrying=False):
 
 def getText():
   """The actual function called to get the full default text of the OSD."""
-  return mpdText() + ' ' + volText() + '\n' + timeText()
+  return mpdText() + ' ' + volText() + '\n' + ctime()
 
 mpdc = None
 mpdConnect()

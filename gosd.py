@@ -21,12 +21,11 @@ osdOffset = (10, 17) # the OSD's offset from the corner of the screen
 
 text = None
 lastCall = time()
-musicdir = osdtext.mpdMusicDir()
 
 # album cover functions
 
 def currentDir(tfile):
-  return dirname(musicdir + '/' + tfile)
+  return dirname(osdtext.mpdConfigValue('music_directory') + '/' + tfile)
 
 def isAnImage(filename):
   ext = splitext(filename)[1]
