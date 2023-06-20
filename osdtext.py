@@ -55,15 +55,15 @@ def mpdConfig(reparse=False):
 
 def mpdConfigValue(key):
   conf = mpdConfig()
+  if key == 'music_directory':
+    global music_directory
+    if music_directory:
+      return music_directory
   if not key in conf:
     return None
   if key == 'password':
     pw = conf['password']
     return pw[1:pw.find('@')]
-  if key == 'music_directory':
-    global music_directory
-    if music_directory:
-      return music_directory
   return conf[key]
 
 def mpdConnect():
@@ -87,16 +87,12 @@ def mpdConnect():
 
 def mpdCurrentSong():
   mp = mpdConnect()
-  if mp == None:
-    return None
-  else:
+  if mp:
     return mp.currentsong()
 
 def mpdStatus():
   mp = mpdConnect()
-  if mp == None:
-    return None
-  else:
+  if mp:
     return mp.status()
 
 # tmsu tag functions
