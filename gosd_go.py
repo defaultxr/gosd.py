@@ -9,7 +9,7 @@ import sys, socket
 
 if __name__ == '__main__':
   s = socket.socket()
-  s.settimeout(4)
+  s.settimeout(2)
   try:
     s.connect(('localhost', 9876))
     if len(sys.argv) > 1:
