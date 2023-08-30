@@ -30,26 +30,26 @@ def isAnImage(filename):
   return ext.lower() in ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.webp']
 
 def findImagesIn(directory):
-  return list(filter(isAnImage, os.listdir(directory)))
+  return list(map(lambda i: os.path.join(directory, i), filter(isAnImage, os.listdir(directory))))
+
+def isCoverLike(filename):
+  f = filename.lower()
+  for m in ['front', 'cover', ]:
+    if m in f:
+      return True
+  return False
 
 def getCoverIn(directory):
-  results = findImagesIn(directory)
-  res = None
-  if len(results) > 0:
-    for i in results:
-      if i.lower().find('front') != -1:
-        res = i
-        break
-      elif i.lower().find('cover') != -1:
-        res = i
-        break
-    if res == None:
-      results.sort()
-      res = results[0]
-  if res:
-    return directory + '/' + res
-  else:
+  images = findImagesIn(directory)
+  if len(images) == 0:
     return None
+  if len(images) == 1:
+    return images[0]
+  coverLike = next(filter(isCoverLike, images))
+  if len(coverLike) == 0:
+    images.sort()
+    return images[0]
+  return coverLike[0]
 
 # behavior/logic functions
 
