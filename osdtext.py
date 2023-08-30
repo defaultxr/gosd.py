@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 import os, time, socket, mpd, shlex
 
-# You shouldn't need to edit this file, as it will automatically (attempt to) parse MPD's configuration file.
-# Note that it will only parse until the first line ending in an opening curly bracket ({)
-# so you should make sure your global MPD settings should come before that.
+# This code will attempt to parse MPD's configuration by default, so you generally shouldn't need to edit the "configuration" section here unless your MPD is running on another machine.
+# Note that it will only parse until the first line ending in an opening curly bracket ({), so you should make sure your global MPD settings come before that.
 
 # configuration
 

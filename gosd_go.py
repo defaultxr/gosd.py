@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-# show, toggle, or hide the OSD.
-# with a dash as the sole argument, read from stdin and send that text to the OSD to display it.
-# if the arguments aren't either "-" or "osd", the arguments are treated as the text the OSD should display.
-
-# returns 0 on success, 1 if attempting to hide an already-hidden OSD, 2 on timeout, or 3 on some other type of error.
+# gosd_go.py - Show, toggle, or hide the OSD.
+# With a dash as the sole argument, it will send the text read from stdin to the OSD to display it.
+# Arguments other than "-" or "osd" are treated as text to be displayed by the OSD.
+# Returns 0 on success, 1 if attempting to hide an already-hidden OSD, 2 on timeout, or 3 on some other type of error.
 
 import sys, socket
 

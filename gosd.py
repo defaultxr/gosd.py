@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-# FIX: can use 'ffmpeg -i file.mp3 cover.png -y' to get the album cover from file.mp3 as a png. alternatively, exiftool also works.
 import os, os.path, time, socket, osdtext
 from qtpy import QtWidgets, QtGui, QtCore
 
-# per https://www.jwz.org/xscreensaver/faq.html#popup-windows :
-# Pop-ups, notifications, and all similar windows should be mapped as WM_TRANSIENT_FOR and/or _NET_WM_WINDOW_TYPE_DIALOG windows, as has been explained by the ICCCM and the FreeDesktop EWMH specifications for decades.
+# NOTES:
+# - "Pop-ups, notifications, and all similar windows should be mapped as WM_TRANSIENT_FOR and/or _NET_WM_WINDOW_TYPE_DIALOG windows, as has been explained by the ICCCM and the FreeDesktop EWMH specifications for decades" - https://www.jwz.org/xscreensaver/faq.html#popup-windows
+
+# TODO/FIX:
+# - can use 'ffmpeg -i file.mp3 cover.png -y' to get the album cover from file.mp3 as a png. alternatively, exiftool also works.
 
 # configuration
 
