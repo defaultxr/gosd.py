@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, time, socket, mpd, shlex
+import os, os.path, time, socket, mpd, shlex
 
 # This code will attempt to parse MPD's configuration by default, so you generally shouldn't need to edit the "configuration" section here unless your MPD is running on another machine.
 # Note that it will only parse until the first line ending in an opening curly bracket ({), so you should make sure your global MPD settings come before that.
@@ -146,13 +146,14 @@ def tagText():
 
 def jcText():
   """Return the text representing the jack_capture status (i.e. shows a circle if it is)."""
-  tmp = os.popen("ps -eo etime,cmd|grep '^[ ]*[0-9]*:[0-9]* jack_captu[r]e'", "r")
-  txt = tmp.read()
+  tmp = os.popen("ps -eo etime,cmd", "r")
+  lines = tmp.readlines()
   tmp.close()
-  if len(txt) > 0:
-    return chr(9679) + "(" + txt.split()[0] + ") "
-  else:
-    return ""
+  for line in lines:
+    split = line.split()
+    if os.path.basename(split[1]) == 'jack_capture':
+      return chr(9679) + "(" + split[0] + ") "
+  return ""
 
 # volume
 
