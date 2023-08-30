@@ -29,7 +29,7 @@ def currentDir(tfile):
 
 def isAnImage(filename):
   ext = splitext(filename)[1]
-  return ext.lower() in ['.jpg', '.jpeg', '.bmp', '.png', '.gif']
+  return ext.lower() in ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.webp']
 
 def findImagesIn(directory):
   return list(filter(isAnImage, listdir(directory)))
