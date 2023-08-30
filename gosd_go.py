@@ -8,13 +8,13 @@ import sys, socket
 
 if __name__ == '__main__':
   s = socket.socket()
-  s.settimeout(2)
+  s.settimeout(4)
   try:
     s.connect(('localhost', 9876))
     if len(sys.argv) > 1:
       if sys.argv[1] == '-':
         s.send(bytes(sys.stdin.read(), 'utf-8'))
-      elif len(sys.argv) == 2 and argv[1] == 'osd':
+      elif len(sys.argv) == 2 and sys.argv[1] == 'osd':
         s.send(bytes("SHOW\n", 'utf-8'))
       else:
         txt = " ".join(sys.argv[1:])
