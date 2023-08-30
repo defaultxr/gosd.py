@@ -22,9 +22,6 @@ lastCall = time.time()
 
 # album cover functions
 
-def currentDir(tfile):
-  return os.path.dirname(osdtext.mpdConfigValue('music_directory') + '/' + tfile)
-
 def isAnImage(filename):
   ext = os.path.splitext(filename)[1]
   return ext.lower() in ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.webp']
@@ -115,7 +112,7 @@ def updatePic():
   if cs == None or len(cs) == 0 or osdtext.mpdStatus()['state'] == 'stop':
     win.piclabel.clear()
     return
-  curdir = currentDir(cs['file'])
+  curdir = os.path.dirname(os.path.join(osdtext.mpdConfigValue('music_directory'), cs['file']))
   if win.cdir != curdir:
     win.cdir = curdir
     cover = getCoverIn(curdir)
