@@ -115,7 +115,7 @@ def tagSymbols(tags):
       res += "\N{HEAVY BLACK HEART}" # 💿 🎜
       break
   return res
- 
+
 def tagText():
   """Return the text representing whether the current artist and album directories, and the current track are tagged with TMSU."""
   cs = mpdCurrentSong()

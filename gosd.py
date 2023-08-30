@@ -98,7 +98,7 @@ def main():
     ntext = text
   win.label.setText(ntext)
   updatePic()
-  win.resize(win.sizeHint()) 
+  win.resize(win.sizeHint())
   place(win)
   win.show()
   win.raise_()
@@ -161,7 +161,7 @@ class MyWindow(QtWidgets.QWidget):
 
   def hide(self):
     super(MyWindow, self).hide()
-   
+
   def mouseReleaseEvent(self, ev):
     self.hide()
 
