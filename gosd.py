@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # FIX: can use 'ffmpeg -i file.mp3 cover.png -y' to get the album cover from file.mp3 as a png. alternatively, exiftool also works.
-import socket
-import osdtext
+import os, os.path, time, socket, osdtext
 from qtpy import QtWidgets, QtGui, QtCore
-from time import sleep, time
-from os import listdir
-from os.path import dirname, splitext
 
 # per https://www.jwz.org/xscreensaver/faq.html#popup-windows :
 # Pop-ups, notifications, and all similar windows should be mapped as WM_TRANSIENT_FOR and/or _NET_WM_WINDOW_TYPE_DIALOG windows, as has been explained by the ICCCM and the FreeDesktop EWMH specifications for decades.
@@ -20,19 +16,19 @@ osdOffset = (10, 17) # the OSD's offset from the corner of the screen
 # code
 
 text = None
-lastCall = time()
+lastCall = time.time()
 
 # album cover functions
 
 def currentDir(tfile):
-  return dirname(osdtext.mpdConfigValue('music_directory') + '/' + tfile)
+  return os.path.dirname(osdtext.mpdConfigValue('music_directory') + '/' + tfile)
 
 def isAnImage(filename):
-  ext = splitext(filename)[1]
+  ext = os.path.splitext(filename)[1]
   return ext.lower() in ['.bmp', '.gif', '.jpeg', '.jpg', '.png', '.webp']
 
 def findImagesIn(directory):
-  return list(filter(isAnImage, listdir(directory)))
+  return list(filter(isAnImage, os.listdir(directory)))
 
 def getCoverIn(directory):
   results = findImagesIn(directory)
@@ -73,15 +69,15 @@ def readFromSocket(): # process the data coming in from the socket
         win.hide()
       else:
         text = None
-        lastCall = time()
+        lastCall = time.time()
         win.show()
     elif received == 'SHOW':
       text = None
-      lastCall = time()
+      lastCall = time.time()
       win.show()
     else:
       text = received
-      lastCall = time()
+      lastCall = time.time()
       win.show()
     a.send(bytes(reply + '\n', 'utf-8'))
     a.close()
@@ -103,10 +99,10 @@ def main():
   win.show()
   win.raise_()
   if not text:
-    if (time() - lastCall) > osdOnScreenTime: # hide the OSD
+    if (time.time() - lastCall) > osdOnScreenTime:
       win.hide()
   else: # text was provided
-    if (time() - lastCall) > max(osdOnScreenTime, (len(text.split("\n")))):
+    if (time.time() - lastCall) > max(osdOnScreenTime, (len(text.split("\n")))):
       win.hide()
 
 # gui stuff
@@ -178,4 +174,4 @@ if __name__ == '__main__':
   text = "Started"
   while True:
     main()
-    sleep(0.1)
+    time.sleep(0.1)

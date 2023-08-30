@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-import os, socket, mpd, shlex
-from time import ctime
+import os, time, socket, mpd, shlex
 
 # You shouldn't need to edit this file, as it will automatically (attempt to) parse MPD's configuration file.
 # Note that it will only parse until the first line ending in an opening curly bracket ({)
@@ -254,7 +253,7 @@ def mpdText(retrying=False):
 
 def getText():
   """The actual function called to get the full default text of the OSD."""
-  return mpdText() + ' ' + volText() + '\n' + ctime()
+  return mpdText() + ' ' + volText() + '\n' + time.ctime()
 
 mpdc = None
 mpdConnect()
