@@ -31,7 +31,7 @@ def findImagesIn(directory):
 
 def isCoverLike(filename):
   f = filename.lower()
-  for m in ['front', 'cover', ]:
+  for m in ['front', 'cover']:
     if m in f:
       return True
   return False
@@ -42,11 +42,13 @@ def getCoverIn(directory):
     return None
   if len(images) == 1:
     return images[0]
-  coverLike = next(filter(isCoverLike, images))
-  if len(coverLike) == 0:
+  try:
+    coverLike = next(filter(isCoverLike, images))
+  except StopIteration:
     images.sort()
     return images[0]
-  return coverLike[0]
+  else:
+    return coverLike[0]
 
 # behavior/logic functions
 
