@@ -7,18 +7,18 @@ A simple Qt OSD written in Python 3 and designed for use with [MPD](https://www.
 
 I made this because I couldn't find any OSDs I liked. As seen in the screenshot, this OSD shows the following information by default:
 
-- MPD now playing information (artist, song title, track number, album).
-- Whether the artist directory, album directory, and track itself are tagged with [TMSU](https://tmsu.org/).
+- Thumbnail of an image from the directory of the current MPD track (prioritizing files with `front` or `cover` in the name).
+- MPD current track information (artist, song title, track number, album).
+- Number of [TMSU](https://tmsu.org/) tags on the "artist directory", "album directory", and file of the current MPD track.
 - Index of the current track in MPD's playlist, and the total playlist length.
 - Whether jack_capture is running (represented with ●).
 - Whether MPD's "single" mode is on (represented with 🗘)
 - Whether MPD is in consume mode (represented with ᗧ).
 - MPD status (i.e. playing or paused, represented with ▶ and ■).
 - Current time and total time of the track.
-- MPD random mode (i.e. random or no random, represented with ⇄ and →).
-- ALSA volume.
+- MPD random mode (represented with ⇄ for random and → for sequential).
+- ALSA volume and mute status.
 - Current time and date.
-- Thumbnail of the album cover of the current track, if an image of such appears in the directory of the track.
 
 It also has the following features:
 
@@ -31,7 +31,7 @@ It has the following problems:
 
 - Written in Python (which is slow, though it's not a huge problem in this case). In the (probably far) future I'd like to rewrite this in a compiled language like [Zig](https://ziglang.org).
 - User customizations must be done by editing the source of the script itself.
-- No functionality to detect the number of screens you have, nor to easily change the position of the OSD (you'll need to edit the `place` function in `gosd.py`).
+- Positioning of the OSD has to be done by editing the `place` function in `gosd.py`.
 - Assumes your music is stored in an ARTIST/ALBUM/TRACK structure.
 - Plenty others.
 
@@ -61,4 +61,6 @@ Right now gosd.py is "good enough" for me, but I do want to improve a few things
 - Improve the command-line argument syntax of `gosd_go.py`.
 - Allow specifying the hide time on the command line.
 - Allow specifying the text alignment on the command line.
+- Allow displaying text in tables.
+- Allow displaying arbitrary images.
 - Hide the album cover when showing something other than the default text.
