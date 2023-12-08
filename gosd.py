@@ -48,7 +48,7 @@ def getCoverIn(directory):
     images.sort()
     return images[0]
   else:
-    return coverLike[0]
+    return coverLike
 
 # behavior/logic functions
 
