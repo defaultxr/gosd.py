@@ -172,7 +172,7 @@ def volText():
 
 # mpd information
 
-def mpdText(retrying=False):
+def mpdText():
   """Returns the text showing MPD information."""
   global mpdc
   cs = mpdCurrentSong()
