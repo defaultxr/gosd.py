@@ -133,7 +133,7 @@ def tagText():
 
 # other media players (not used)
 
-# def mpvtext():
+# def mpvText():
 #   """Return text if mpv is playing. This doesn't actually work, though, and is not used."""
 #   x = os.popen('ps x').read().split('\n')
 #   mplayer = none
