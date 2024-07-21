@@ -159,16 +159,16 @@ def jcText():
 
 def volText():
   """Returns the text representing the current ALSA volume."""
-  query = 'amixer'
-  for line in os.popen(query).readlines():
-    if '%' in line:
-      split = line.split()
-      vol = split[-2]
-      on = split[-1]
-      mutetext = ''
-      if on != '[on]':
-        mutetext = ' (muted)'
-      return 'vol: ' + vol[1:-1] + mutetext
+  split = os.popen('pactl get-sink-volume "@DEFAULT_SINK@"').readline().split()
+  for i in split:
+    if '%' in i:
+      vol = i
+      break
+  muted = os.popen('pactl get-sink-mute "@DEFAULT_SINK@"').readline().split()
+  mutetext = ''
+  if muted[1] == 'yes':
+    mutetext = ' (muted)'
+  return 'vol: ' + vol + mutetext
 
 # mpd information
 
