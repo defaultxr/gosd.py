@@ -49,9 +49,11 @@ How to Use
 
 Run `python gosd.py &` and then you should see the word "Started" in the bottom right corner of your screen. That means the OSD is running. The message will disappear after a few seconds, but the OSD is still running. To display it, simply call `python gosd_go.py`. This will make the OSD re-appear, showing you the default text. If you want the OSD to go away sooner, you can click on it or use the command `python gosd_go.py HIDE`.
 
-If you want the OSD to display something else, you can run gosd_go.py with a dash as an argument: `python gosd_go.py -`. gosd_go.py will read from standard input, and once it gets an 'End Of File' (usually you can make this by pressing `ctrl+d`), it will send all the text to the gosd process to be displayed. This can be very useful, for example, to display MPD's current playlist with pipes: `mpc playlist | python gosd_go.py -`. Alternatively, you can specify the text as the arguments: `python gosd_go.py hi there` will display "hi there" in the OSD.
+If you want the OSD to display something else, you can run gosd_go.py with a dash as an argument: `python gosd_go.py -`. gosd_go.py will read from standard input, and once it gets an 'End Of File' (usually you can make this by pressing `ctrl+d`), it will send all the text to the gosd process to be displayed. This can be very useful, for example, to display MPD's current playlist with pipes: `mpc playlist | python gosd_go.py -`. Alternatively, you can specify the text as the arguments: `python gosd_go.py 'hi there'` will display "hi there" in the OSD.
 
-If you want to change what information is displayed in the OSD, edit the [osdtext.py](/osdtext.py) file; specifically, the `getText` function is what is called to generate the default text.
+To make the OSD display the output of a command and automatically update the text when the command's output changes, specify the command to run prefixed with `gosd-auto-update-command:`. For example, to tail a log, run `python gosd_go.py 'gosd-auto-update-command:tail /path/to/program.log'`, or to watch the last 10 lines of `journalctl`, run `python gosd_go.py 'gosd-auto-update-command:journalctl -e -n 10'`. I typically use this functionality for my [playerctl-metadata](https://github.com/defaultxr/scripts/blob/master/playerctl-metadata) script, to show information about media being played in players other than MPD, i.e. `python gosd_go.py 'gosd-auto-update-command:playerctl-metadata'`.
+
+If you want to change what information is displayed in the default OSD text, edit the [osdtext.py](/osdtext.py) file; specifically, the `getText` function.
 
 TODO
 ====

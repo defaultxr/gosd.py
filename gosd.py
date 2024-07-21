@@ -83,6 +83,16 @@ def readFromSocket(): # process the data coming in from the socket
     a.send(bytes(reply + '\n', 'utf-8'))
     a.close()
 
+def autoUpdateTextCommand(text):
+  """If the text is set to a string starting with \"gosd-auto-update-command:\", run the specified command and use its output as the text."""
+  if not text.startswith("gosd-auto-update-command:"):
+    return text
+  cmd = text[25:]
+  pipe = os.popen(cmd, 'r')
+  result = pipe.read().rstrip()
+  pipe.close()
+  return result
+
 def main():
   global osdOnScreenTime, lastCall, win, text
   app.processEvents()
@@ -92,7 +102,7 @@ def main():
   if not text:
     ntext = osdtext.getText()
   else:
-    ntext = text
+    ntext = autoUpdateTextCommand(text)
   win.label.setText(ntext)
   updatePic()
   win.resize(win.sizeHint())
@@ -103,7 +113,8 @@ def main():
     if (time.time() - lastCall) > osdOnScreenTime:
       win.hide()
   else: # text was provided
-    if (time.time() - lastCall) > max(osdOnScreenTime, (len(text.split("\n")))):
+    lines = len(ntext.split("\n"))
+    if (time.time() - lastCall) > max(osdOnScreenTime, lines):
       win.hide()
 
 # gui stuff
