@@ -26,5 +26,6 @@ if __name__ == '__main__':
     exit(int(response))
   except TimeoutError:
     exit(2)
-  except:
+  except Exception as e:
+    print("Caught error: " + e)
     exit(3)
