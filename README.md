@@ -29,7 +29,7 @@ It also has the following features:
 
 It has the following problems:
 
-- Written in Python (which is slow, though it's not a huge problem in this case). In the (probably far) future I'd like to rewrite this in a compiled language like [Zig](https://ziglang.org).
+- Written in Python (which is slow, though it's not a huge problem in this case). In the (probably far) future I'd like to rewrite this in a compiled language; maybe [Zig](https://ziglang.org), maybe Lisp, maybe Rust; who knows.
 - User customizations must be done by editing the source of the script itself.
 - Positioning of the OSD has to be done by editing the `place` function in `gosd.py`.
 - Assumes your music is stored in an ARTIST/ALBUM/TRACK structure.
@@ -66,3 +66,4 @@ Right now gosd.py is "good enough" for me, but I do want to improve a few things
 - Allow displaying text in tables.
 - Allow displaying arbitrary images.
 - Hide the album cover when showing something other than the default text.
+- Use a Unix socket file instead of TCP.
