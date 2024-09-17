@@ -166,6 +166,7 @@ class MyWindow(QtWidgets.QWidget):
     self.setLayout(self.layout)
     self.cdir = None
     self.realPixmap = None
+    self.setWindowTitle("gosd")
 
   def hide(self):
     super(MyWindow, self).hide()
