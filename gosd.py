@@ -37,7 +37,10 @@ def isCoverLike(filename):
   return False
 
 def getCoverIn(directory):
-  images = findImagesIn(directory)
+  try:
+    images = findImagesIn(directory)
+  except FileNotFoundError:
+    return None
   if len(images) == 0:
     return None
   if len(images) == 1:
